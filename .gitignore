@@ -1,2 +1,9 @@
+# Dotfiles
 .vscode
 .DS_Store
+
+# Object files & executables
+*.o
+*.exe
+app
+
