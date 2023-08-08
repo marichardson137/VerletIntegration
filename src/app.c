@@ -4,14 +4,16 @@
 #include "dependencies/include/GL/glew.h"
 #include "dependencies/include/GLFW/glfw3.h"
 
-#include "draw.h"
+#include "graphics.h"
+#include "shader.h"
+#include "model.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
 // Settings
-const unsigned int SCR_WIDTH = 900;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_WIDTH = 1280;
+const unsigned int SCR_HEIGHT = 720;
 
 int main()
 {
@@ -43,7 +45,33 @@ int main()
     /* Set up a callback function for when the window is resized */
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    // prepare();
+    /* Initialize GLEW */
+    glewInit();
+
+    /* OpenGL Settings */
+    glClearColor(0.08, 0.08, 0.08, 1.0);
+    glClearStencil(0);
+
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CW);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glPointSize(2.0);
+
+    /* Models & Shaders */
+    unsigned int shaderID = createShader("shaders/phong_vertex.glsl", "shaders/phong_fragment.glsl");
+
+    Mesh* mesh = createMesh("models/cube.obj");
+    // Model* model = createModel(mesh);
+
+    mfloat_t position[VEC3_SIZE] = { 0, 0, -5 };
+    mfloat_t rotation[VEC3_SIZE] = { 0, 0, 0 };
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window)) {
@@ -51,10 +79,9 @@ int main()
         processInput(window);
 
         /* Render here */
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-        // draw();
+        drawMesh(mesh, shaderID, position, rotation, 1);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
@@ -62,8 +89,6 @@ int main()
         /* Poll for and process events */
         glfwPollEvents();
     }
-
-    // cleanup();
 
     glfwTerminate();
     return 0;
@@ -73,7 +98,7 @@ int main()
 void processInput(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, 1);
+        glfwSetWindowShouldClose(window, true);
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
