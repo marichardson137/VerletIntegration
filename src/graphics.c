@@ -25,18 +25,12 @@ void drawMesh(Mesh* mesh, unsigned int shaderID, mfloat_t* position, mfloat_t* r
     mat4_identity(matrices.rotation);
     mat4_from_eulers(matrices.rotation, rotation);
 
-    printf("\n");
-    for (int i = 0; i < MAT4_SIZE; i += 4) {
-        printf("%.1f %.1f %.1f %.1f\n", matrices.rotation[i], matrices.rotation[i + 1],
-            matrices.rotation[i + 2], matrices.rotation[i + 3]);
-    }
-
     /* Scaling */
     mat4_identity(matrices.scaling);
-    mat4_translation(matrices.scaling, matrices.scaling, scaling);
+    mat4_scaling(matrices.scaling, matrices.scaling, scaling);
 
     /* Model matrix */
-    mat4_multiply(matrices.model, matrices.scaling, matrices.rotation);
+    mat4_multiply(matrices.model, matrices.rotation, matrices.scaling);
     mat4_multiply(matrices.model, matrices.position, matrices.model);
 
     glUseProgram(shaderID);

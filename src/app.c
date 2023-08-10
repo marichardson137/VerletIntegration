@@ -86,9 +86,9 @@ int main()
         drawMesh(mesh, shaderID, position, rotation, scale);
 
         position[0] -= 0.001;
-        // scale -= 0.001;
-        rotation[2] += 0.2;
-        rotation[1] -= 0.2;
+        scale -= 0.002;
+        rotation[2] += 0.01;
+        rotation[1] -= 0.01;
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);

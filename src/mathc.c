@@ -2954,12 +2954,12 @@ mfloat_t* mat4_from_eulers(mfloat_t* result, mfloat_t* r)
     result[0] = cY * cP;
     result[1] = -cY * sP * cR + sY * sR;
     result[2] = cY * sP * sR + sY * cR;
-    result[3] = sP;
-    result[4] = cP * cR;
-    result[5] = -cP * sR;
-    result[6] = -sY * cP;
-    result[7] = sY * sP * cR + cY * sR;
-    result[8] = -sY * sP * sR + cY * cR;
+    result[4] = sP;
+    result[5] = cP * cR;
+    result[6] = -cP * sR;
+    result[8] = -sY * cP;
+    result[9] = sY * sP * cR + cY * sR;
+    result[10] = -sY * sP * sR + cY * cR;
 
     return result;
 }
