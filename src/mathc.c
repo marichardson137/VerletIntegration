@@ -2942,6 +2942,28 @@ mfloat_t* mat4_cofactor(mfloat_t* result, mfloat_t* m0)
     return result;
 }
 
+mfloat_t* mat4_from_eulers(mfloat_t* result, mfloat_t* r)
+{
+    mfloat_t sP = MSIN(r[0]);
+    mfloat_t cP = MCOS(r[0]);
+    mfloat_t sR = MSIN(r[1]);
+    mfloat_t cR = MCOS(r[1]);
+    mfloat_t sY = MSIN(r[2]);
+    mfloat_t cY = MCOS(r[2]);
+
+    result[0] = cY * cP;
+    result[1] = -cY * sP * cR + sY * sR;
+    result[2] = cY * sP * sR + sY * cR;
+    result[3] = sP;
+    result[4] = cP * cR;
+    result[5] = -cP * sR;
+    result[6] = -sY * cP;
+    result[7] = sY * sP * cR + cY * sR;
+    result[8] = -sY * sP * sR + cY * cR;
+
+    return result;
+}
+
 mfloat_t* mat4_rotation_x(mfloat_t* result, mfloat_t f)
 {
     mfloat_t c = MCOS(f);
@@ -3392,8 +3414,8 @@ mfloat_t* mat4_ortho(mfloat_t* result, mfloat_t l, mfloat_t r, mfloat_t b, mfloa
 
 mfloat_t* mat4_perspective(mfloat_t* result, mfloat_t fov_y, mfloat_t aspect, mfloat_t n, mfloat_t f)
 {
-    mfloat_t tan_half_fov_y = MFLOAT_C(1.0) / MTAN(fov_y * MFLOAT_C(0.5));
-    result[0] = MFLOAT_C(1.0) / aspect * tan_half_fov_y;
+    mfloat_t tan_half_fov_y = MTAN(fov_y * MFLOAT_C(0.5));
+    result[0] = MFLOAT_C(1.0) / (aspect * tan_half_fov_y);
     result[1] = MFLOAT_C(0.0);
     result[2] = MFLOAT_C(0.0);
     result[3] = MFLOAT_C(0.0);
@@ -3403,11 +3425,11 @@ mfloat_t* mat4_perspective(mfloat_t* result, mfloat_t fov_y, mfloat_t aspect, mf
     result[7] = MFLOAT_C(0.0);
     result[8] = MFLOAT_C(0.0);
     result[9] = MFLOAT_C(0.0);
-    result[10] = f / (n - f);
+    result[10] = -(f + n) / (f - n);
     result[11] = -MFLOAT_C(1.0);
     result[12] = MFLOAT_C(0.0);
     result[13] = MFLOAT_C(0.0);
-    result[14] = -(f * n) / (f - n);
+    result[14] = -(2 * f * n) / (f - n);
     result[15] = MFLOAT_C(0.0);
     return result;
 }

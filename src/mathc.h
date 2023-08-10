@@ -672,6 +672,7 @@ mfloat_t* mat4_assign(mfloat_t* result, mfloat_t* m0);
 mfloat_t* mat4_negative(mfloat_t* result, mfloat_t* m0);
 mfloat_t* mat4_transpose(mfloat_t* result, mfloat_t* m0);
 mfloat_t* mat4_cofactor(mfloat_t* result, mfloat_t* m0);
+mfloat_t* mat4_from_eulers(mfloat_t* result, mfloat_t* r);
 mfloat_t* mat4_rotation_x(mfloat_t* result, mfloat_t f);
 mfloat_t* mat4_rotation_y(mfloat_t* result, mfloat_t f);
 mfloat_t* mat4_rotation_z(mfloat_t* result, mfloat_t f);

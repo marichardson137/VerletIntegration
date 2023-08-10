@@ -23,7 +23,13 @@ void drawMesh(Mesh* mesh, unsigned int shaderID, mfloat_t* position, mfloat_t* r
 
     /* Rotation */
     mat4_identity(matrices.rotation);
-    mat4_rotation_x(matrices.rotation, to_radians(0.0));
+    mat4_from_eulers(matrices.rotation, rotation);
+
+    printf("\n");
+    for (int i = 0; i < MAT4_SIZE; i += 4) {
+        printf("%.1f %.1f %.1f %.1f\n", matrices.rotation[i], matrices.rotation[i + 1],
+            matrices.rotation[i + 2], matrices.rotation[i + 3]);
+    }
 
     /* Scaling */
     mat4_identity(matrices.scaling);
@@ -40,7 +46,7 @@ void drawMesh(Mesh* mesh, unsigned int shaderID, mfloat_t* position, mfloat_t* r
 
     mfloat_t projection[MAT4_SIZE];
 
-    mat4_perspective(projection, to_radians(45.0), 1280 / 720, 0.1, 100.0);
+    mat4_perspective(projection, to_radians(45.0), (float)1400 / (float)900, 0.1, 100.0);
 
     glUniformMatrix4fv(glGetUniformLocation(shaderID, "projection"),
         1, GL_FALSE, projection);

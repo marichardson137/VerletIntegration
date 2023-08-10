@@ -16,7 +16,7 @@ SRC_DIR = src
 SRC = $(wildcard $(SRC_DIR)/*.c)
 OBJ = $(SRC:.c=.o)
 
-all: clean $(OUTPUT)
+all: $(OUTPUT)
 
 $(OUTPUT): $(OBJ)
 	$(CC) $(CFLAGS) -o $@ $^ -L $(LIB_DIR) $(LDFLAGS)

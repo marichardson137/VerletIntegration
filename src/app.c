@@ -33,7 +33,7 @@ int main()
 #endif
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Algorithm Visualization", NULL, NULL);
+    window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Verlet Integration", NULL, NULL);
     if (!window) {
         glfwTerminate();
         return -1;
@@ -44,23 +44,24 @@ int main()
 
     /* Set up a callback function for when the window is resized */
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSwapInterval(1);
 
     /* Initialize GLEW */
     glewInit();
 
     /* OpenGL Settings */
-    glClearColor(0.08, 0.08, 0.08, 1.0);
+    glClearColor(0.8, 0.8, 0.8, 1.0);
     glClearStencil(0);
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CW);
+    // glEnable(GL_CULL_FACE);
+    // glCullFace(GL_BACK);
+    // glFrontFace(GL_CW);
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    // glEnable(GL_BLEND);
+    // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glPointSize(2.0);
 
@@ -72,6 +73,7 @@ int main()
 
     mfloat_t position[VEC3_SIZE] = { 0, 0, -5 };
     mfloat_t rotation[VEC3_SIZE] = { 0, 0, 0 };
+    mfloat_t scale = 1;
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window)) {
@@ -81,7 +83,12 @@ int main()
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-        drawMesh(mesh, shaderID, position, rotation, 1);
+        drawMesh(mesh, shaderID, position, rotation, scale);
+
+        position[0] -= 0.001;
+        // scale -= 0.001;
+        rotation[2] += 0.2;
+        rotation[1] -= 0.2;
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
