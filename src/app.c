@@ -7,6 +7,7 @@
 #include "graphics.h"
 #include "shader.h"
 #include "model.h"
+#include "verlet.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
@@ -56,19 +57,19 @@ int main()
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
-    // glEnable(GL_CULL_FACE);
-    // glCullFace(GL_BACK);
-    // glFrontFace(GL_CW);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
 
-    // glEnable(GL_BLEND);
-    // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glPointSize(2.0);
 
     /* Models & Shaders */
     unsigned int shaderID = createShader("shaders/phong_vertex.glsl", "shaders/phong_fragment.glsl");
 
-    Mesh* mesh = createMesh("models/cube.obj");
+    Mesh* mesh = createMesh("models/sphere.obj");
     // Model* model = createModel(mesh);
 
     mfloat_t position[VEC3_SIZE] = { 0, 0, -5 };
@@ -85,8 +86,8 @@ int main()
 
         drawMesh(mesh, shaderID, position, rotation, scale);
 
-        position[0] -= 0.001;
-        scale -= 0.002;
+        // position[0] -= 0.001;
+        // scale -= 0.002;
         rotation[2] += 0.01;
         rotation[1] -= 0.01;
 
