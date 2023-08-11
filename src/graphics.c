@@ -6,7 +6,7 @@
 
 #include "graphics.h"
 
-void drawMesh(Mesh* mesh, unsigned int shaderID, mfloat_t* position, mfloat_t* rotation, mfloat_t scale)
+void drawMesh(Mesh* mesh, unsigned int shaderID, GLenum mode, mfloat_t* position, mfloat_t* rotation, mfloat_t scale)
 {
     mfloat_t scaling[VEC3_SIZE] = { scale, scale, scale };
 
@@ -47,7 +47,7 @@ void drawMesh(Mesh* mesh, unsigned int shaderID, mfloat_t* position, mfloat_t* r
 
     glBindVertexArray(mesh->VAO);
 
-    glDrawArrays(GL_TRIANGLES, 0, mesh->numVertices);
+    glDrawArrays(mode, 0, mesh->numVertices);
 
     glUseProgram(0);
 

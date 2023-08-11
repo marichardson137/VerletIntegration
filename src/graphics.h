@@ -4,6 +4,6 @@
 #include "model.h"
 #include "mathc.h"
 
-void drawMesh(Mesh* mesh, unsigned int shaderID, mfloat_t* position, mfloat_t* rotation, mfloat_t scale);
+void drawMesh(Mesh* mesh, unsigned int shaderID, GLenum mode, mfloat_t* position, mfloat_t* rotation, mfloat_t scale);
 
 #endif

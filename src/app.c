@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "dependencies/include/GL/glew.h"
 #include "dependencies/include/GLFW/glfw3.h"
@@ -10,10 +11,10 @@
 #include "model.h"
 #include "verlet.h"
 
-#define NUM_VERLET 1
-
+#define NUM_VERLET 1000
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
+void instantiateVerlets(VerletObject* objects, int size);
 
 // Settings
 const unsigned int SCR_WIDTH = 1280;
@@ -75,18 +76,19 @@ int main()
     Mesh* mesh = createMesh("models/sphere.obj");
     // Model* model = createModel(mesh);
 
-    // mfloat_t position[VEC3_SIZE] = { 0, 0, -5 };
+    mfloat_t position[VEC3_SIZE] = { 0, 0, -20 };
     mfloat_t rotation[VEC3_SIZE] = { 0, 0, 0 };
-    mfloat_t scale = 1;
+    mfloat_t scale = 7;
 
     VerletObject* verlets = malloc(sizeof(VerletObject) * NUM_VERLET);
-    vec3(verlets[0].current, 0, 0, -10);
-    vec3(verlets[0].previous, 0, 0, -10);
-    vec3(verlets[0].acceleration, 0, 0, 0);
-    verlets[0].radius = 1;
+    instantiateVerlets(verlets, NUM_VERLET);
+    int numActive = 1;
+    int frameCount = 0;
 
-    float dt = 0.016f;
+    float dt = 0.000001f;
     float lastFrameTime = (float)glfwGetTime();
+
+    char title[100] = "";
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window)) {
@@ -96,20 +98,23 @@ int main()
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-        applyForces(verlets, NUM_VERLET);
-        // applyCollisions(verlets, NUM_VERLET);
-        applyConstraints(verlets, NUM_VERLET);
-        updatePositions(verlets, NUM_VERLET, dt);
-
-        for (int i = 0; i < NUM_VERLET; i++) {
-            VerletObject obj = verlets[i];
-            drawMesh(mesh, shaderID, obj.current, rotation, scale);
+        if (frameCount > 1 && numActive < NUM_VERLET) {
+            numActive++;
+            frameCount = 0;
+            sprintf(title, "FPS : %-4.0f | Balls : %-10d", 1.0 / dt, numActive);
         }
 
-        // position[0] -= 0.001;
-        // scale -= 0.002;
-        // rotation[2] += 0.01;
-        // rotation[1] -= 0.01;
+        applyForces(verlets, numActive);
+        applyCollisions(verlets, numActive);
+        applyConstraints(verlets, numActive);
+        updatePositions(verlets, numActive, dt);
+
+        for (int i = 0; i < numActive; i++) {
+            VerletObject obj = verlets[i];
+            drawMesh(mesh, shaderID, GL_TRIANGLES, obj.current, rotation, obj.radius);
+        }
+
+        drawMesh(mesh, shaderID, GL_POINTS, position, rotation, scale);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
@@ -120,6 +125,9 @@ int main()
         /* Timing */
         dt = (float)glfwGetTime() - lastFrameTime;
         lastFrameTime = (float)glfwGetTime();
+        frameCount++;
+
+        glfwSetWindowTitle(window, title);
     }
 
     glfwTerminate();
@@ -139,4 +147,15 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     // make sure the viewport matches the new window dimensions; note that width and
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
+}
+
+void instantiateVerlets(VerletObject* objects, int size)
+{
+    for (int i = 0; i < size; i++) {
+        VerletObject* obj = &(objects[i]);
+        vec3(obj->current, 2, 0, -22);
+        vec3(obj->previous, 2, 0.2, -22);
+        vec3(obj->acceleration, 0, 0, 0);
+        obj->radius = 0.3;
+    }
 }

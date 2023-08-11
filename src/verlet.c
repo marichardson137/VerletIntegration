@@ -30,19 +30,40 @@ void applyCollisions(VerletObject* objects, int size)
 {
     for (int a = 0; a < size; a++) {
         for (int b = 0; b < size; b++) {
-            handleCollision(&objects[a], &objects[b]);
+            if (a != b) {
+                handleCollision(&objects[a], &objects[b]);
+            }
         }
     }
 }
 
 void applyConstraints(VerletObject* objects, int size)
 {
+    // Floor
+    // for (int i = 0; i < size; i++) {
+    //     VerletObject* obj = &(objects[i]);
+    //     if (obj->current[1] < -2.0f) {
+    //         mfloat_t disp = obj->current[1] - obj->previous[1];
+    //         obj->current[1] = -2.0f;
+    //         obj->previous[1] = obj->current[1] + disp;
+    //     }
+    // }
+
+    // Circle
+
+    mfloat_t cRadius = 7;
+    mfloat_t cPosition[VEC3_SIZE] = { 0, 0, -20 };
+
     for (int i = 0; i < size; i++) {
         VerletObject* obj = &(objects[i]);
-        if (obj->current[1] < -2.0f) {
-            mfloat_t disp = obj->current[1] - obj->previous[1];
-            obj->current[1] = -2.0f;
-            obj->previous[1] = obj->current[1] + disp;
+        mfloat_t disp[VEC3_SIZE];
+        vec3_subtract(disp, obj->current, cPosition);
+        mfloat_t dist = vec3_length(disp);
+        if (dist > cRadius - obj->radius) {
+            mfloat_t norm[VEC3_SIZE];
+            vec3_divide_f(norm, disp, dist);
+            vec3_multiply_f(norm, norm, cRadius - obj->radius);
+            vec3_add(obj->current, cPosition, norm);
         }
     }
 }
