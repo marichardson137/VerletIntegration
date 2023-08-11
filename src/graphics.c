@@ -40,7 +40,7 @@ void drawMesh(Mesh* mesh, unsigned int shaderID, mfloat_t* position, mfloat_t* r
 
     mfloat_t projection[MAT4_SIZE];
 
-    mat4_perspective(projection, to_radians(45.0), (float)1400 / (float)900, 0.1, 100.0);
+    mat4_perspective(projection, to_radians(45.0), (float)1280 / (float)720, 0.1, 100.0);
 
     glUniformMatrix4fv(glGetUniformLocation(shaderID, "projection"),
         1, GL_FALSE, projection);

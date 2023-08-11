@@ -6,7 +6,7 @@
 
 #include "dependencies/include/GL/glew.h"
 
-#define VERTEX_LIMIT 500
+#define VERTEX_LIMIT 2000
 
 DynamicArray* loadOBJ(const char* filename);
 void processVertex(DynamicArray* vertices, char* vertexData[3], Vertex v[], Vertex vt[], Vertex vn[]);

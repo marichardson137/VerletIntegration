@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <stdlib.h>
 #include <stdio.h>
 
 #include "dependencies/include/GL/glew.h"
@@ -8,6 +9,8 @@
 #include "shader.h"
 #include "model.h"
 #include "verlet.h"
+
+#define NUM_VERLET 1
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
@@ -72,9 +75,18 @@ int main()
     Mesh* mesh = createMesh("models/sphere.obj");
     // Model* model = createModel(mesh);
 
-    mfloat_t position[VEC3_SIZE] = { 0, 0, -5 };
+    // mfloat_t position[VEC3_SIZE] = { 0, 0, -5 };
     mfloat_t rotation[VEC3_SIZE] = { 0, 0, 0 };
     mfloat_t scale = 1;
+
+    VerletObject* verlets = malloc(sizeof(VerletObject) * NUM_VERLET);
+    vec3(verlets[0].current, 0, 0, -10);
+    vec3(verlets[0].previous, 0, 0, -10);
+    vec3(verlets[0].acceleration, 0, 0, 0);
+    verlets[0].radius = 1;
+
+    float dt = 0.016f;
+    float lastFrameTime = (float)glfwGetTime();
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window)) {
@@ -84,18 +96,30 @@ int main()
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-        drawMesh(mesh, shaderID, position, rotation, scale);
+        applyForces(verlets, NUM_VERLET);
+        // applyCollisions(verlets, NUM_VERLET);
+        applyConstraints(verlets, NUM_VERLET);
+        updatePositions(verlets, NUM_VERLET, dt);
+
+        for (int i = 0; i < NUM_VERLET; i++) {
+            VerletObject obj = verlets[i];
+            drawMesh(mesh, shaderID, obj.current, rotation, scale);
+        }
 
         // position[0] -= 0.001;
         // scale -= 0.002;
-        rotation[2] += 0.01;
-        rotation[1] -= 0.01;
+        // rotation[2] += 0.01;
+        // rotation[1] -= 0.01;
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
 
         /* Poll for and process events */
         glfwPollEvents();
+
+        /* Timing */
+        dt = (float)glfwGetTime() - lastFrameTime;
+        lastFrameTime = (float)glfwGetTime();
     }
 
     glfwTerminate();

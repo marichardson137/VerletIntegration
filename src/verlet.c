@@ -1,6 +1,8 @@
 #include "verlet.h"
 
-#define GRAVITY -100.0f
+#include <stdio.h>
+
+#define GRAVITY -10.0f
 
 void applyForces(VerletObject* objects, int size)
 {
@@ -35,18 +37,26 @@ void applyCollisions(VerletObject* objects, int size)
 
 void applyConstraints(VerletObject* objects, int size)
 {
+    for (int i = 0; i < size; i++) {
+        VerletObject* obj = &(objects[i]);
+        if (obj->current[1] < -2.0f) {
+            mfloat_t disp = obj->current[1] - obj->previous[1];
+            obj->current[1] = -2.0f;
+            obj->previous[1] = obj->current[1] + disp;
+        }
+    }
 }
 
 void updatePositions(VerletObject* objects, int size, float dt)
 {
     for (int i = 0; i < size; i++) {
-        VerletObject obj = objects[i];
+        VerletObject* obj = &(objects[i]);
         mfloat_t disp[VEC3_SIZE];
-        vec3_subtract(disp, obj.current, obj.previous);
-        vec3_assign(obj.previous, obj.current);
-        vec3_multiply_f(obj.acceleration, obj.acceleration, dt * dt);
-        vec3_add(obj.current, obj.current, disp);
-        vec3_add(obj.current, obj.current, obj.acceleration);
-        vec3_zero(obj.acceleration);
+        vec3_subtract(disp, obj->current, obj->previous);
+        vec3_assign(obj->previous, obj->current);
+        vec3_multiply_f(obj->acceleration, obj->acceleration, dt * dt);
+        vec3_add(obj->current, obj->current, disp);
+        vec3_add(obj->current, obj->current, obj->acceleration);
+        vec3_zero(obj->acceleration);
     }
 }
