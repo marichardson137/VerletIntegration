@@ -10,10 +10,14 @@
 #include "shader.h"
 #include "model.h"
 #include "verlet.h"
+#include "camera.h"
+#include "peripheral.h"
 
 #define NUM_VERLET 1000
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void cursor_enter_callback(GLFWwindow* window, int entered);
 void processInput(GLFWwindow* window);
+void updateCamera(GLFWwindow* window, Mouse* mouse, Camera* camera);
 void instantiateVerlets(VerletObject* objects, int size);
 
 // Settings
@@ -51,6 +55,9 @@ int main()
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSwapInterval(1);
 
+    /* Callback function for mouse enter/exit */
+    glfwSetCursorEnterCallback(window, cursor_enter_callback);
+
     /* Initialize GLEW */
     glewInit();
 
@@ -85,6 +92,11 @@ int main()
     int numActive = 1;
     int frameCount = 0;
 
+    mfloat_t view[MAT4_SIZE];
+    Camera* camera = createCamera((mfloat_t[]) { 0, 0, 0 });
+
+    Mouse* mouse = createMouse();
+
     float dt = 0.000001f;
     float lastFrameTime = (float)glfwGetTime();
 
@@ -93,12 +105,22 @@ int main()
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window)) {
         /* Input */
+        updateMouse(window, mouse);
         processInput(window);
+
+        /* Camera */
+        updateCamera(window, mouse, camera);
+
+        glUseProgram(shaderID);
+        createViewMatrix(view, camera);
+        glUniformMatrix4fv(glGetUniformLocation(shaderID, "view"),
+            1, GL_FALSE, view);
+        glUseProgram(0);
 
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-        if (frameCount > 1 && numActive < NUM_VERLET) {
+        if (frameCount > 3 && numActive < NUM_VERLET) {
             numActive++;
             frameCount = 0;
             sprintf(title, "FPS : %-4.0f | Balls : %-10d", 1.0 / dt, numActive);
@@ -141,6 +163,35 @@ void processInput(GLFWwindow* window)
         glfwSetWindowShouldClose(window, true);
 }
 
+void updateCamera(GLFWwindow* window, Mouse* mouse, Camera* camera)
+{
+    float speed = 0.05;
+    mfloat_t temp[VEC3_SIZE];
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        vec3_add(camera->position, camera->position, vec3_multiply_f(temp, camera->forwards, speed));
+
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        vec3_subtract(camera->position, camera->position, vec3_multiply_f(temp, camera->right, speed));
+
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        vec3_subtract(camera->position, camera->position, vec3_multiply_f(temp, camera->forwards, speed));
+
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        vec3_add(camera->position, camera->position, vec3_multiply_f(temp, camera->right, speed));
+
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+        vec3_add(camera->position, camera->position, vec3_multiply_f(temp, camera->up, speed));
+
+    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+        vec3_subtract(camera->position, camera->position, vec3_multiply_f(temp, camera->up, speed));
+
+    double dx = 0.1 * getDx(mouse);
+    double dy = 0.1 * getDy(mouse);
+    camera->yaw += dx;
+    camera->pitch -= dy;
+}
+
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -149,12 +200,22 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
+void cursor_enter_callback(GLFWwindow* window, int entered)
+{
+    if (entered) {
+        // The cursor entered the content area of the window
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    } else {
+        // The cursor left the content area of the window
+    }
+}
+
 void instantiateVerlets(VerletObject* objects, int size)
 {
     for (int i = 0; i < size; i++) {
         VerletObject* obj = &(objects[i]);
         vec3(obj->current, 2, 0, -22);
-        vec3(obj->previous, 2, 0.2, -22);
+        vec3(obj->previous, 2.1, -0.2, -22.1);
         vec3(obj->acceleration, 0, 0, 0);
         obj->radius = 0.3;
     }
