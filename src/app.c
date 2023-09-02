@@ -24,6 +24,8 @@ void instantiateVerlets(VerletObject* objects, int size);
 const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 720;
 
+bool cursorEntered = false;
+
 int main()
 {
 
@@ -186,10 +188,21 @@ void updateCamera(GLFWwindow* window, Mouse* mouse, Camera* camera)
     if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
         vec3_subtract(camera->position, camera->position, vec3_multiply_f(temp, camera->up, speed));
 
-    double dx = 0.1 * getDx(mouse);
-    double dy = 0.1 * getDy(mouse);
-    camera->yaw += dx;
-    camera->pitch -= dy;
+    // Mouse Movement
+    if (cursorEntered) {
+
+        double dx = 0.1 * getDx(mouse);
+        double dy = 0.1 * getDy(mouse);
+        camera->yaw += dx;
+
+        camera->pitch -= dy;
+        if (camera->pitch > 89.0f) {
+            camera->pitch = 89.0f;
+        }
+        if (camera->pitch < -89.0f) {
+            camera->pitch = -89.0f;
+        }
+    }
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
@@ -205,6 +218,7 @@ void cursor_enter_callback(GLFWwindow* window, int entered)
     if (entered) {
         // The cursor entered the content area of the window
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        cursorEntered = true;
     } else {
         // The cursor left the content area of the window
     }
