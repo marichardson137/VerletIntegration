@@ -17,4 +17,6 @@ void applyCollisions(VerletObject* objects, int size);
 void applyConstraints(VerletObject* objects, int size);
 void updatePositions(VerletObject* objects, int size, float dt);
 
+void addForce(VerletObject* objects, int size, mfloat_t* center, float strength);
+
 #endif

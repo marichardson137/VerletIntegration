@@ -52,7 +52,7 @@ void applyConstraints(VerletObject* objects, int size)
     // Circle
 
     mfloat_t cRadius = 7;
-    mfloat_t cPosition[VEC3_SIZE] = { 0, 0, -20 };
+    mfloat_t cPosition[VEC3_SIZE] = { 0, 0, 0 };
 
     for (int i = 0; i < size; i++) {
         VerletObject* obj = &(objects[i]);
@@ -79,5 +79,21 @@ void updatePositions(VerletObject* objects, int size, float dt)
         vec3_add(obj->current, obj->current, disp);
         vec3_add(obj->current, obj->current, obj->acceleration);
         vec3_zero(obj->acceleration);
+    }
+}
+
+void addForce(VerletObject* objects, int size, mfloat_t* center, float strength)
+{
+    for (int i = 0; i < size; i++) {
+        VerletObject* obj = &(objects[i]);
+        mfloat_t disp[VEC3_SIZE];
+        vec3_subtract(disp, obj->current, center);
+        mfloat_t dist = vec3_length(disp);
+        if (dist > 0) {
+            mfloat_t norm[VEC3_SIZE];
+            vec3_divide_f(norm, disp, dist);
+            vec3_multiply_f(norm, norm, strength);
+            vec3_add(obj->acceleration, obj->acceleration, norm);
+        }
     }
 }

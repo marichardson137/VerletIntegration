@@ -13,7 +13,10 @@
 #include "camera.h"
 #include "peripheral.h"
 
-#define NUM_VERLET 1000
+#define NUM_VERLET 5000
+#define ANIMATION_TIME 90.0f // Frames
+#define TARGET_FPS 100
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void cursor_enter_callback(GLFWwindow* window, int entered);
 void processInput(GLFWwindow* window);
@@ -25,6 +28,9 @@ const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 720;
 
 bool cursorEntered = false;
+Camera* camera;
+float cameraRadius = 20.0f;
+int totalFrames = 0;
 
 int main()
 {
@@ -85,17 +91,17 @@ int main()
     Mesh* mesh = createMesh("models/sphere.obj");
     // Model* model = createModel(mesh);
 
-    mfloat_t position[VEC3_SIZE] = { 0, 0, -20 };
+    // Container
+    mfloat_t position[VEC3_SIZE] = { 0, 0, 0 };
     mfloat_t rotation[VEC3_SIZE] = { 0, 0, 0 };
     mfloat_t scale = 7;
 
     VerletObject* verlets = malloc(sizeof(VerletObject) * NUM_VERLET);
     instantiateVerlets(verlets, NUM_VERLET);
-    int numActive = 1;
-    int frameCount = 0;
+    int numActive = 0;
 
     mfloat_t view[MAT4_SIZE];
-    Camera* camera = createCamera((mfloat_t[]) { 0, 0, 0 });
+    camera = createCamera((mfloat_t[]) { 0, 0, cameraRadius });
 
     Mouse* mouse = createMouse();
 
@@ -110,6 +116,10 @@ int main()
         updateMouse(window, mouse);
         processInput(window);
 
+        if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS) {
+            addForce(verlets, numActive, (mfloat_t[]) { 0, 3, 0 }, -50.0f);
+        }
+
         /* Camera */
         updateCamera(window, mouse, camera);
 
@@ -122,10 +132,13 @@ int main()
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-        if (frameCount > 3 && numActive < NUM_VERLET) {
+        if (1.0 / dt >= 95 && glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS && numActive < NUM_VERLET) {
             numActive++;
-            frameCount = 0;
+        }
+
+        if (totalFrames % 60 == 0) {
             sprintf(title, "FPS : %-4.0f | Balls : %-10d", 1.0 / dt, numActive);
+            glfwSetWindowTitle(window, title);
         }
 
         applyForces(verlets, numActive);
@@ -148,10 +161,11 @@ int main()
 
         /* Timing */
         dt = (float)glfwGetTime() - lastFrameTime;
+        while (dt < 1.0f / TARGET_FPS) {
+            dt = (float)glfwGetTime() - lastFrameTime;
+        }
         lastFrameTime = (float)glfwGetTime();
-        frameCount++;
-
-        glfwSetWindowTitle(window, title);
+        totalFrames++;
     }
 
     glfwTerminate();
@@ -167,42 +181,47 @@ void processInput(GLFWwindow* window)
 
 void updateCamera(GLFWwindow* window, Mouse* mouse, Camera* camera)
 {
-    float speed = 0.05;
+
+    float speed = 0.08f;
     mfloat_t temp[VEC3_SIZE];
 
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        vec3_add(camera->position, camera->position, vec3_multiply_f(temp, camera->forwards, speed));
+    float universalAngle = totalFrames / 4.0f;
+    vec3(camera->position, MCOS(MRADIANS(universalAngle)) * cameraRadius, camera->position[1], MSIN(MRADIANS(universalAngle)) * cameraRadius);
+    camera->yaw = universalAngle + 180.0f;
 
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        vec3_subtract(camera->position, camera->position, vec3_multiply_f(temp, camera->right, speed));
-
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        vec3_subtract(camera->position, camera->position, vec3_multiply_f(temp, camera->forwards, speed));
-
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        vec3_add(camera->position, camera->position, vec3_multiply_f(temp, camera->right, speed));
-
-    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
         vec3_add(camera->position, camera->position, vec3_multiply_f(temp, camera->up, speed));
-
-    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-        vec3_subtract(camera->position, camera->position, vec3_multiply_f(temp, camera->up, speed));
-
-    // Mouse Movement
-    if (cursorEntered) {
-
-        double dx = 0.1 * getDx(mouse);
-        double dy = 0.1 * getDy(mouse);
-        camera->yaw += dx;
-
-        camera->pitch -= dy;
-        if (camera->pitch > 89.0f) {
-            camera->pitch = 89.0f;
-        }
-        if (camera->pitch < -89.0f) {
-            camera->pitch = -89.0f;
-        }
+        camera->pitch -= 0.2f;
+        cameraRadius -= 0.01f;
     }
+
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+        vec3_subtract(camera->position, camera->position, vec3_multiply_f(temp, camera->up, speed));
+        camera->pitch += 0.2f;
+        cameraRadius += 0.01f;
+    }
+
+    // if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+    //     vec3_add(camera->position, camera->position, vec3_multiply_f(temp, camera->up, speed));
+
+    // if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+    //     vec3_subtract(camera->position, camera->position, vec3_multiply_f(temp, camera->up, speed));
+
+    // // Mouse Movement
+    // if (cursorEntered) {
+
+    //     double dx = 0.1 * getDx(mouse);
+    //     double dy = 0.1 * getDy(mouse);
+    //     camera->yaw += dx;
+
+    //     camera->pitch -= dy;
+    //     if (camera->pitch > 89.0f) {
+    //         camera->pitch = 89.0f;
+    //     }
+    //     if (camera->pitch < -89.0f) {
+    //         camera->pitch = -89.0f;
+    //     }
+    // }
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
@@ -228,9 +247,9 @@ void instantiateVerlets(VerletObject* objects, int size)
 {
     for (int i = 0; i < size; i++) {
         VerletObject* obj = &(objects[i]);
-        vec3(obj->current, 2, 0, -22);
-        vec3(obj->previous, 2.1, -0.2, -22.1);
+        vec3(obj->current, 2, 0, -2);
+        vec3(obj->previous, 2.1, -0.2, -2.2);
         vec3(obj->acceleration, 0, 0, 0);
-        obj->radius = 0.3;
+        obj->radius = 0.25;
     }
 }
