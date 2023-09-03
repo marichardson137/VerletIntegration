@@ -7,7 +7,6 @@ layout (location = 2) in vec2 vertexTexCoord;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
-uniform float outline;
 
 out vec3 fragmentPos;
 out vec3 fragmentVertexNormal;
@@ -15,5 +14,5 @@ out vec2 fragmentTexCoord;
 
 void main()
 {
-    gl_Position = projection * view * model * vec4(vertexPos + vertexNormal * outline, 1.0);
+    gl_Position = projection * view * model * vec4(vertexPos, 1.0);
 }

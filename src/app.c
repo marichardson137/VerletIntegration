@@ -70,7 +70,7 @@ int main()
     glewInit();
 
     /* OpenGL Settings */
-    glClearColor(0.8, 0.8, 0.8, 1.0);
+    glClearColor(0.2, 0.2, 0.2, 1.0);
     glClearStencil(0);
 
     glEnable(GL_DEPTH_TEST);
@@ -86,7 +86,9 @@ int main()
     glPointSize(2.0);
 
     /* Models & Shaders */
-    unsigned int shaderID = createShader("shaders/phong_vertex.glsl", "shaders/phong_fragment.glsl");
+    unsigned int phongShader = createShader("shaders/phong_vertex.glsl", "shaders/phong_fragment.glsl");
+    unsigned int instanceShader = createShader("shaders/instance_vertex.glsl", "shaders/instance_fragment.glsl");
+    unsigned int baseShader = createShader("shaders/base_vertex.glsl", "shaders/base_fragment.glsl");
 
     Mesh* mesh = createMesh("models/sphere.obj");
     // Model* model = createModel(mesh);
@@ -122,10 +124,19 @@ int main()
 
         /* Camera */
         updateCamera(window, mouse, camera);
-
-        glUseProgram(shaderID);
         createViewMatrix(view, camera);
-        glUniformMatrix4fv(glGetUniformLocation(shaderID, "view"),
+
+        /* Shader Uniforms */
+        glUseProgram(phongShader);
+        glUniformMatrix4fv(glGetUniformLocation(phongShader, "view"),
+            1, GL_FALSE, view);
+        glUseProgram(0);
+        glUseProgram(baseShader);
+        glUniformMatrix4fv(glGetUniformLocation(baseShader, "view"),
+            1, GL_FALSE, view);
+        glUseProgram(0);
+        glUseProgram(instanceShader);
+        glUniformMatrix4fv(glGetUniformLocation(instanceShader, "view"),
             1, GL_FALSE, view);
         glUseProgram(0);
 
@@ -148,10 +159,11 @@ int main()
 
         for (int i = 0; i < numActive; i++) {
             VerletObject obj = verlets[i];
-            drawMesh(mesh, shaderID, GL_TRIANGLES, obj.current, rotation, obj.radius);
+            drawMesh(mesh, phongShader, GL_TRIANGLES, obj.current, rotation, obj.radius);
         }
 
-        drawMesh(mesh, shaderID, GL_POINTS, position, rotation, scale);
+        /* Container */
+        drawMesh(mesh, baseShader, GL_POINTS, position, rotation, scale);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
