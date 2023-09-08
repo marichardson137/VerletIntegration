@@ -28,7 +28,7 @@ This is an implementation of [Verlet Integration](https://www.algorithm-archive.
 ### Linking particles into a "Net"
 ![ezgif com-video-to-gif (2)](https://github.com/marichardson137/VerletIntegration/assets/77594556/9b7cde39-567f-459b-9474-305534c78618)
 
-### Icosphere which maintains its pressure using [Hooke's Law](https://en.wikipedia.org/wiki/Hooke%27s_law)!
+### Icosphere which maintains its pressure using [Ideal Gas Law](https://en.wikipedia.org/wiki/Ideal_gas_law)
 ![ezgif com-video-to-gif (3)](https://github.com/marichardson137/VerletIntegration/assets/77594556/937feb63-ffb4-4247-838c-f48b08db6508)
 
 ### System Specs.
