@@ -3,7 +3,7 @@
 ![ezgif com-video-to-gif](https://github.com/marichardson137/VerletIntegration/assets/77594556/83056570-5de0-491c-aeaa-783b583da1d7)
 
 ### Synopsis
-This is an implementation of [Verlet Integration](https://www.algorithm-archive.org/contents/verlet_integration/verlet_integration.html), a numerical method commonly used for approximating trajectories. It's made with the C programming language and [OpenGL](https://www.khronos.org/about/), a popular API for GPU rendering. 
+This is an implementation of [Verlet Integration](https://www.algorithm-archive.org/contents/verlet_integration/verlet_integration.html), a numerical method commonly used for approximating trajectories. It's made with the C programming language and [OpenGL](https://www.khronos.org/about/), a popular API for GPU rendering. See [here](https://github.com/marichardson137/PyOpenGL) for the Python version (outdated).
 
 ### Key Features
 - Simulate thousands of particles (at 60 FPS) experiencing real-time collisions, arbitrary forces, constraints, and linking.
