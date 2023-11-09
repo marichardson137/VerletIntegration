@@ -19,8 +19,7 @@ mat4 translationMatrix(vec3 translation)
         vec4(scale, 0.0, 0.0, 0.0),
         vec4(0.0, scale, 0.0, 0.0),
         vec4(0.0, 0.0, scale, 0.0),
-        vec4(translation, scale)
-    );
+        vec4(translation, scale));
 }
 
 void main()

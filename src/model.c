@@ -63,7 +63,7 @@ Mesh* createMesh(const char* filename, bool instanced)
         glBufferData(GL_ARRAY_BUFFER, sizeof(float) * INSTANCE_STRIDE * MAX_INSTANCES, NULL, GL_STREAM_DRAW);
         // Instance Position
         glEnableVertexAttribArray(3);
-        glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, STRIDE * sizeof(float), (void*)32);
+        glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, INSTANCE_STRIDE * sizeof(float), (void*)0);
         glVertexAttribDivisor(3, 1);
     }
 

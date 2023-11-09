@@ -14,10 +14,10 @@
 #include "peripheral.h"
 
 // Preprocessor constants
-#define NUM_VERLET 5000
+#define VERLET_RADIUS 0.1f
 #define ANIMATION_TIME 90.0f // Frames
 #define TARGET_FPS 60
-#define NUM_SUBSTEPS 1
+#define NUM_SUBSTEPS 8
 
 // Function prototypes
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -101,8 +101,8 @@ int main()
     mfloat_t rotation[VEC3_SIZE] = { 0, 0, 0 };
     mfloat_t scale = 7;
 
-    VerletObject* verlets = malloc(sizeof(VerletObject) * NUM_VERLET);
-    instantiateVerlets(verlets, NUM_VERLET);
+    VerletObject* verlets = malloc(sizeof(VerletObject) * MAX_INSTANCES);
+    instantiateVerlets(verlets, MAX_INSTANCES);
     int numActive = 0;
 
     mfloat_t view[MAT4_SIZE];
@@ -122,7 +122,7 @@ int main()
         processInput(window);
 
         if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS) {
-            addForce(verlets, numActive, (mfloat_t[]) { 0, 3, 0 }, -50.0f * NUM_SUBSTEPS);
+            addForce(verlets, numActive, (mfloat_t[]) { 0, 3, 0 }, -30.0f * NUM_SUBSTEPS);
         }
 
         /* Camera */
@@ -146,8 +146,8 @@ int main()
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-        if (1.0 / dt >= TARGET_FPS - 5 && glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS && numActive < NUM_VERLET) {
-            numActive++;
+        if (1.0 / dt >= TARGET_FPS - 5 && glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS && numActive < MAX_INSTANCES) {
+            numActive += 20;
         }
 
         if (totalFrames % 60 == 0) {
@@ -158,18 +158,19 @@ int main()
         float sub_dt = dt / NUM_SUBSTEPS;
         for (int i = 0; i < NUM_SUBSTEPS; i++) {
             applyForces(verlets, numActive);
-            applyCollisions(verlets, numActive);
+            // applyCollisions(verlets, numActive);
             applyConstraints(verlets, numActive);
             updatePositions(verlets, numActive, sub_dt);
         }
 
-        float verletPositions[numActive][VEC3_SIZE];
+        float verletPositions[numActive * VEC3_SIZE];
+        int pointer = 0;
 
         for (int i = 0; i < numActive; i++) {
             VerletObject obj = verlets[i];
-            verletPositions[i][0] = obj.current[0];
-            verletPositions[i][1] = obj.current[1];
-            verletPositions[i][2] = obj.current[2];
+            verletPositions[pointer++] = obj.current[0];
+            verletPositions[pointer++] = obj.current[1];
+            verletPositions[pointer++] = obj.current[2];
             // drawMesh(mesh, phongShader, GL_TRIANGLES, obj.current, rotation, obj.radius);
         }
 
@@ -283,6 +284,6 @@ void instantiateVerlets(VerletObject* objects, int size)
         vec3(obj->current, x, 0.5, z);
         vec3(obj->previous, xp, 0.5, zp);
         vec3(obj->acceleration, 0, 0, 0);
-        obj->radius = 0.25;
+        obj->radius = VERLET_RADIUS;
     }
 }
