@@ -53,3 +53,25 @@ void drawMesh(Mesh* mesh, unsigned int shaderID, GLenum mode, mfloat_t* position
 
     glBindVertexArray(0);
 }
+
+void drawInstanced(Mesh* mesh, unsigned int shaderID, GLenum mode, int num, mfloat_t scale)
+{
+    glUseProgram(shaderID);
+
+    mfloat_t projection[MAT4_SIZE];
+
+    mat4_perspective(projection, to_radians(45.0), (float)1280 / (float)720, 0.1, 100.0);
+
+    glUniformMatrix4fv(glGetUniformLocation(shaderID, "projection"),
+        1, GL_FALSE, projection);
+
+    glUniform1f(glGetUniformLocation(shaderID, "scale"), scale);
+
+    glBindVertexArray(mesh->VAO);
+
+    glDrawArraysInstanced(mode, 0, mesh->numVertices, num);
+
+    glUseProgram(0);
+
+    glBindVertexArray(0);
+}

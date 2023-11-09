@@ -13,10 +13,13 @@
 #include "camera.h"
 #include "peripheral.h"
 
+// Preprocessor constants
 #define NUM_VERLET 5000
 #define ANIMATION_TIME 90.0f // Frames
-#define TARGET_FPS 100
+#define TARGET_FPS 60
+#define NUM_SUBSTEPS 1
 
+// Function prototypes
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void cursor_enter_callback(GLFWwindow* window, int entered);
 void processInput(GLFWwindow* window);
@@ -27,6 +30,7 @@ void instantiateVerlets(VerletObject* objects, int size);
 const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 720;
 
+// Global variables (replacing soon with State struct)
 bool cursorEntered = false;
 Camera* camera;
 float cameraRadius = 20.0f;
@@ -34,7 +38,6 @@ int totalFrames = 0;
 
 int main()
 {
-
     GLFWwindow* window;
 
     /* Initialize the library */
@@ -90,7 +93,7 @@ int main()
     unsigned int instanceShader = createShader("shaders/instance_vertex.glsl", "shaders/instance_fragment.glsl");
     unsigned int baseShader = createShader("shaders/base_vertex.glsl", "shaders/base_fragment.glsl");
 
-    Mesh* mesh = createMesh("models/sphere.obj");
+    Mesh* mesh = createMesh("models/sphere.obj", true);
     // Model* model = createModel(mesh);
 
     // Container
@@ -119,7 +122,7 @@ int main()
         processInput(window);
 
         if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS) {
-            addForce(verlets, numActive, (mfloat_t[]) { 0, 3, 0 }, -50.0f);
+            addForce(verlets, numActive, (mfloat_t[]) { 0, 3, 0 }, -50.0f * NUM_SUBSTEPS);
         }
 
         /* Camera */
@@ -143,7 +146,7 @@ int main()
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-        if (1.0 / dt >= 95 && glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS && numActive < NUM_VERLET) {
+        if (1.0 / dt >= TARGET_FPS - 5 && glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS && numActive < NUM_VERLET) {
             numActive++;
         }
 
@@ -152,15 +155,28 @@ int main()
             glfwSetWindowTitle(window, title);
         }
 
-        applyForces(verlets, numActive);
-        applyCollisions(verlets, numActive);
-        applyConstraints(verlets, numActive);
-        updatePositions(verlets, numActive, dt);
+        float sub_dt = dt / NUM_SUBSTEPS;
+        for (int i = 0; i < NUM_SUBSTEPS; i++) {
+            applyForces(verlets, numActive);
+            applyCollisions(verlets, numActive);
+            applyConstraints(verlets, numActive);
+            updatePositions(verlets, numActive, sub_dt);
+        }
+
+        float verletPositions[numActive][VEC3_SIZE];
 
         for (int i = 0; i < numActive; i++) {
             VerletObject obj = verlets[i];
-            drawMesh(mesh, phongShader, GL_TRIANGLES, obj.current, rotation, obj.radius);
+            verletPositions[i][0] = obj.current[0];
+            verletPositions[i][1] = obj.current[1];
+            verletPositions[i][2] = obj.current[2];
+            // drawMesh(mesh, phongShader, GL_TRIANGLES, obj.current, rotation, obj.radius);
         }
+
+        glBindBuffer(GL_ARRAY_BUFFER, mesh->instanceVBO);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * INSTANCE_STRIDE * numActive, verletPositions);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        drawInstanced(mesh, instanceShader, GL_TRIANGLES, numActive, verlets[0].radius);
 
         /* Container */
         drawMesh(mesh, baseShader, GL_POINTS, position, rotation, scale);
@@ -257,10 +273,15 @@ void cursor_enter_callback(GLFWwindow* window, int entered)
 
 void instantiateVerlets(VerletObject* objects, int size)
 {
+    float distance = 4.0f;
     for (int i = 0; i < size; i++) {
         VerletObject* obj = &(objects[i]);
-        vec3(obj->current, 2, 0, -2);
-        vec3(obj->previous, 2.1, -0.2, -2.2);
+        float x = MSIN(i) * distance;
+        float z = MCOS(i) * distance;
+        float xp = MSIN(i) * distance * 1.001;
+        float zp = MCOS(i) * distance * 1.001;
+        vec3(obj->current, x, 0.5, z);
+        vec3(obj->previous, xp, 0.5, zp);
         vec3(obj->acceleration, 0, 0, 0);
         obj->radius = 0.25;
     }

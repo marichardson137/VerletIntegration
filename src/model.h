@@ -2,6 +2,8 @@
 #define __MODEL_H__
 
 #define STRIDE 8
+#define INSTANCE_STRIDE 3
+#define MAX_INSTANCES 10000
 
 #include "mathc.h"
 
@@ -10,6 +12,7 @@ typedef struct {
     float* vertices;
     unsigned int VAO;
     unsigned int VBO;
+    unsigned int instanceVBO;
 } Mesh;
 
 typedef struct {
@@ -28,7 +31,7 @@ Model* createModel(Mesh* mesh);
 
 void destroyModel(Model* model);
 
-Mesh* createMesh(const char* filename);
+Mesh* createMesh(const char* filename, bool instanced);
 
 void destroyMesh(Mesh* mesh);
 

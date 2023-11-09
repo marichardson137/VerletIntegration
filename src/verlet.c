@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 
-#define GRAVITY -10.0f
+#define GRAVITY -15.0f
 
 void applyForces(VerletObject* objects, int size)
 {

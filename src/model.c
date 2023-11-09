@@ -28,7 +28,7 @@ void destroyModel(Model* model)
     free(model);
 }
 
-Mesh* createMesh(const char* filename)
+Mesh* createMesh(const char* filename, bool instanced)
 {
     DynamicArray* dArray = loadOBJ(filename);
 
@@ -55,6 +55,17 @@ Mesh* createMesh(const char* filename)
     // Texture
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, STRIDE * sizeof(float), (void*)24);
+
+    if (instanced) {
+        // Instancing
+        glGenBuffers(1, &(mesh->instanceVBO));
+        glBindBuffer(GL_ARRAY_BUFFER, mesh->instanceVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(float) * INSTANCE_STRIDE * MAX_INSTANCES, NULL, GL_STREAM_DRAW);
+        // Instance Position
+        glEnableVertexAttribArray(3);
+        glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, STRIDE * sizeof(float), (void*)32);
+        glVertexAttribDivisor(3, 1);
+    }
 
     // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
     glBindBuffer(GL_ARRAY_BUFFER, 0);
