@@ -1,6 +1,8 @@
 #include "verlet.h"
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define GRAVITY -15.0f
 
@@ -37,6 +39,79 @@ void applyCollisions(VerletObject* objects, int size)
     }
 }
 
+#define DIMENSION 45 // CONTAINER_RADIUS / VERLET_RADIUS + 5
+#define MAX_PER_CELL 4
+VerletObject* grid[DIMENSION][DIMENSION][DIMENSION][MAX_PER_CELL];
+
+void handleGridCollision(VerletObject** currentCell, VerletObject** otherCell)
+{
+    for (int a = 0; currentCell[a]; a++) {
+        for (int b = 0; otherCell[b]; b++) {
+            VerletObject* vA = currentCell[a];
+            VerletObject* vB = otherCell[b];
+            if (vA != vB) {
+                // printf("%p <-> %p\n", vA, vB);
+                handleCollision(vA, vB);
+            }
+        }
+    }
+}
+
+void pushNode(int gridX, int gridY, int gridZ, VerletObject* obj)
+{
+    VerletObject** currentCell = grid[gridX][gridY][gridZ];
+    int i = 0;
+    while (currentCell[i])
+        i++;
+    grid[gridX][gridY][gridZ][i] = obj;
+}
+
+void fillGrid(VerletObject* objects, int size)
+{
+    for (int i = 0; i < size; i++) {
+        VerletObject* obj = &(objects[i]);
+        int gridX = obj->current[0] / (VERLET_RADIUS * 2) + DIMENSION / 2;
+        int gridY = obj->current[1] / (VERLET_RADIUS * 2) + DIMENSION / 2;
+        int gridZ = obj->current[2] / (VERLET_RADIUS * 2) + DIMENSION / 2;
+        gridX = clampi(gridX, 0, DIMENSION - 1);
+        gridY = clampi(gridY, 0, DIMENSION - 1);
+        gridZ = clampi(gridZ, 0, DIMENSION - 1);
+
+        // printf("%.1f %.1f %.1f -> %d %d %d\n", obj->current[0], obj->current[1], obj->current[2], gridX, gridY, gridZ);
+        pushNode(gridX, gridY, gridZ, obj);
+    }
+}
+
+void clearGrid()
+{
+    memset(grid, 0, DIMENSION * DIMENSION * DIMENSION * MAX_PER_CELL * sizeof(VerletObject*));
+}
+
+void applyGridCollisions(VerletObject* objects, int size)
+{
+    clearGrid();
+    fillGrid(objects, size);
+    for (int x = 1; x < DIMENSION - 1; x++) {
+        for (int y = 1; y < DIMENSION - 1; y++) {
+            for (int z = 1; z < DIMENSION - 1; z++) {
+                VerletObject** currentCell = grid[x][y][z];
+                if (!currentCell[0])
+                    continue;
+                for (int dx = -1; dx <= 1; dx++) {
+                    for (int dy = -1; dy <= 1; dy++) {
+                        for (int dz = -1; dz <= 1; dz++) {
+                            VerletObject** otherCell = grid[x + dx][y + dy][z + dz];
+                            if (!otherCell[0])
+                                continue;
+                            handleGridCollision(currentCell, otherCell);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 void applyConstraints(VerletObject* objects, int size)
 {
     // Floor
@@ -51,7 +126,7 @@ void applyConstraints(VerletObject* objects, int size)
 
     // Circle
 
-    mfloat_t cRadius = 7;
+    mfloat_t cRadius = CONTAINER_RADIUS;
     mfloat_t cPosition[VEC3_SIZE] = { 0, 0, 0 };
 
     for (int i = 0; i < size; i++) {

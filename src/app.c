@@ -14,10 +14,10 @@
 #include "peripheral.h"
 
 // Preprocessor constants
-#define VERLET_RADIUS 0.1f
 #define ANIMATION_TIME 90.0f // Frames
+#define ADDITION_SPEED 10
 #define TARGET_FPS 60
-#define NUM_SUBSTEPS 8
+#define NUM_SUBSTEPS 6
 
 // Function prototypes
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -99,7 +99,7 @@ int main()
     // Container
     mfloat_t position[VEC3_SIZE] = { 0, 0, 0 };
     mfloat_t rotation[VEC3_SIZE] = { 0, 0, 0 };
-    mfloat_t scale = 7;
+    mfloat_t scale = CONTAINER_RADIUS;
 
     VerletObject* verlets = malloc(sizeof(VerletObject) * MAX_INSTANCES);
     instantiateVerlets(verlets, MAX_INSTANCES);
@@ -147,7 +147,7 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
         if (1.0 / dt >= TARGET_FPS - 5 && glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS && numActive < MAX_INSTANCES) {
-            numActive += 20;
+            numActive += ADDITION_SPEED;
         }
 
         if (totalFrames % 60 == 0) {
@@ -159,6 +159,7 @@ int main()
         for (int i = 0; i < NUM_SUBSTEPS; i++) {
             applyForces(verlets, numActive);
             // applyCollisions(verlets, numActive);
+            applyGridCollisions(verlets, numActive);
             applyConstraints(verlets, numActive);
             updatePositions(verlets, numActive, sub_dt);
         }
@@ -274,7 +275,7 @@ void cursor_enter_callback(GLFWwindow* window, int entered)
 
 void instantiateVerlets(VerletObject* objects, int size)
 {
-    float distance = 4.0f;
+    float distance = 6.0f;
     for (int i = 0; i < size; i++) {
         VerletObject* obj = &(objects[i]);
         float x = MSIN(i) * distance;
