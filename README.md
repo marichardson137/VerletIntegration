@@ -11,8 +11,9 @@ This is an implementation of [Verlet Integration](https://www.algorithm-archive.
 - Custom [OBJ](https://en.wikipedia.org/wiki/Wavefront_.obj_file) file parser to import models from [external applications](https://www.blender.org/) and convert mesh data into an OpenGL-friendly data structure.
 - Substeps, mathematical approximations, and sampling for improved simulation _accuracy_ and _stability_.
 - Algorithms to generate structures like recursive [Icospheres](https://en.wikipedia.org/wiki/Geodesic_polyhedron).
+- Mouse picking with a custom frame buffer to interact with objects in a 3D scene.
 
-### Optimizations (WIP)
+### Optimizations
 - [Instance rendering](https://learnopengl.com/Advanced-OpenGL/Instancing)
 - Multithreading (deterministic vs. non-deterministic)
 - [KD-Tree](https://en.wikipedia.org/wiki/K-d_tree) or [Octree](https://en.wikipedia.org/wiki/Octree) spatial partitioning
