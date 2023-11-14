@@ -3,8 +3,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
 
 #define GRAVITY -15.0f
+#define THREAD_COUNT 8
 
 void applyForces(VerletObject* objects, int size)
 {
@@ -76,8 +78,6 @@ void fillGrid(VerletObject* objects, int size)
         gridX = clampi(gridX, 0, DIMENSION - 1);
         gridY = clampi(gridY, 0, DIMENSION - 1);
         gridZ = clampi(gridZ, 0, DIMENSION - 1);
-
-        // printf("%.1f %.1f %.1f -> %d %d %d\n", obj->current[0], obj->current[1], obj->current[2], gridX, gridY, gridZ);
         pushNode(gridX, gridY, gridZ, obj);
     }
 }
@@ -87,11 +87,20 @@ void clearGrid()
     memset(grid, 0, DIMENSION * DIMENSION * DIMENSION * MAX_PER_CELL * sizeof(VerletObject*));
 }
 
-void applyGridCollisions(VerletObject* objects, int size)
+void* threadFunction(void* arg)
 {
-    clearGrid();
-    fillGrid(objects, size);
-    for (int x = 1; x < DIMENSION - 1; x++) {
+    int thread_id = *((int*)arg);
+    int start = 1 + thread_id * ((DIMENSION) / THREAD_COUNT);
+    int end = 1 + (thread_id + 1) * ((DIMENSION) / THREAD_COUNT);
+
+    // Handle remaining iterations for the last thread
+    if (thread_id == THREAD_COUNT - 1) {
+        end += DIMENSION % THREAD_COUNT - 2;
+    }
+
+    // printf("%d :: %d -> %d\n", thread_id, start, end);
+
+    for (int x = start; x < end; x++) {
         for (int y = 1; y < DIMENSION - 1; y++) {
             for (int z = 1; z < DIMENSION - 1; z++) {
                 VerletObject** currentCell = grid[x][y][z];
@@ -110,11 +119,30 @@ void applyGridCollisions(VerletObject* objects, int size)
             }
         }
     }
+    return NULL;
 }
 
-void applyConstraints(VerletObject* objects, int size)
+pthread_t threads[THREAD_COUNT];
+int thread_ids[THREAD_COUNT];
+
+void applyGridCollisions(VerletObject* objects, int size)
 {
-    // Floor
+    clearGrid();
+    fillGrid(objects, size);
+    // Start the threads
+    for (int t = 0; t < THREAD_COUNT; t++) {
+        thread_ids[t] = t;
+        pthread_create(&threads[t], NULL, threadFunction, (void*)&thread_ids[t]);
+    }
+    // Wait for threads to finish
+    for (int t = 0; t < THREAD_COUNT; t++) {
+        pthread_join(threads[t], NULL);
+    }
+}
+
+void applyConstraints(VerletObject* objects, int size, mfloat_t* containerPosition)
+{
+    // ========= Floor =========
     // for (int i = 0; i < size; i++) {
     //     VerletObject* obj = &(objects[i]);
     //     if (obj->current[1] < -2.0f) {
@@ -124,21 +152,58 @@ void applyConstraints(VerletObject* objects, int size)
     //     }
     // }
 
-    // Circle
+    // ========= Sphere =========
+    // mfloat_t cRadius = CONTAINER_RADIUS;
+    // mfloat_t cPosition[VEC3_SIZE] = { 0, 0, 0 };
+    // for (int i = 0; i < size; i++) {
+    //     VerletObject* obj = &(objects[i]);
+    //     mfloat_t disp[VEC3_SIZE];
+    //     vec3_subtract(disp, obj->current, cPosition);
+    //     mfloat_t dist = vec3_length(disp);
+    //     if (dist > cRadius - obj->radius) {
+    //         mfloat_t norm[VEC3_SIZE];
+    //         vec3_divide_f(norm, disp, dist);
+    //         vec3_multiply_f(norm, norm, cRadius - obj->radius);
+    //         vec3_add(obj->current, cPosition, norm);
+    //     }
+    // }
 
-    mfloat_t cRadius = CONTAINER_RADIUS;
-    mfloat_t cPosition[VEC3_SIZE] = { 0, 0, 0 };
-
+    // ========= Box =========
+    mfloat_t bWidth = CONTAINER_RADIUS;
     for (int i = 0; i < size; i++) {
         VerletObject* obj = &(objects[i]);
-        mfloat_t disp[VEC3_SIZE];
-        vec3_subtract(disp, obj->current, cPosition);
-        mfloat_t dist = vec3_length(disp);
-        if (dist > cRadius - obj->radius) {
-            mfloat_t norm[VEC3_SIZE];
-            vec3_divide_f(norm, disp, dist);
-            vec3_multiply_f(norm, norm, cRadius - obj->radius);
-            vec3_add(obj->current, cPosition, norm);
+
+        if (obj->current[0] < -bWidth + containerPosition[0]) {
+            mfloat_t disp = obj->current[0] - obj->previous[0];
+            obj->current[0] = -bWidth + containerPosition[0];
+            obj->previous[0] = obj->current[0] + disp;
+        }
+        if (obj->current[0] > bWidth + containerPosition[0]) {
+            mfloat_t disp = obj->current[0] - obj->previous[0];
+            obj->current[0] = bWidth + containerPosition[0];
+            obj->previous[0] = obj->current[0] + disp;
+        }
+
+        if (obj->current[1] < -bWidth + containerPosition[1]) {
+            mfloat_t disp = obj->current[1] - obj->previous[1];
+            obj->current[1] = -bWidth + containerPosition[1];
+            obj->previous[1] = obj->current[1] + disp;
+        }
+        if (obj->current[1] > bWidth + containerPosition[1]) {
+            mfloat_t disp = obj->current[1] - obj->previous[1];
+            obj->current[1] = bWidth + containerPosition[1];
+            obj->previous[1] = obj->current[1] + disp;
+        }
+
+        if (obj->current[2] < -bWidth + containerPosition[2]) {
+            mfloat_t disp = obj->current[2] - obj->previous[2];
+            obj->current[2] = -bWidth + containerPosition[2];
+            obj->previous[2] = obj->current[2] + disp;
+        }
+        if (obj->current[2] > bWidth + containerPosition[2]) {
+            mfloat_t disp = obj->current[2] - obj->previous[2];
+            obj->current[2] = bWidth + containerPosition[2];
+            obj->previous[2] = obj->current[2] + disp;
         }
     }
 }

@@ -57,14 +57,21 @@ Mesh* createMesh(const char* filename, bool instanced)
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, STRIDE * sizeof(float), (void*)24);
 
     if (instanced) {
-        // Instancing
-        glGenBuffers(1, &(mesh->instanceVBO));
-        glBindBuffer(GL_ARRAY_BUFFER, mesh->instanceVBO);
+        // Position
+        glGenBuffers(1, &(mesh->positionVBO));
+        glBindBuffer(GL_ARRAY_BUFFER, mesh->positionVBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(float) * INSTANCE_STRIDE * MAX_INSTANCES, NULL, GL_STREAM_DRAW);
-        // Instance Position
         glEnableVertexAttribArray(3);
         glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, INSTANCE_STRIDE * sizeof(float), (void*)0);
         glVertexAttribDivisor(3, 1);
+
+        // Velocity
+        glGenBuffers(1, &(mesh->velocityVBO));
+        glBindBuffer(GL_ARRAY_BUFFER, mesh->velocityVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(float) * MAX_INSTANCES, NULL, GL_STREAM_DRAW);
+        glEnableVertexAttribArray(4);
+        glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(float), (void*)0);
+        glVertexAttribDivisor(4, 1);
     }
 
     // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind

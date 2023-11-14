@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -std=c99 -O2
-LDFLAGS = -lglfw -lGLEW -framework Cocoa -framework OpenGL -framework IOKit
+LDFLAGS = -lpthread -lglfw -lGLEW -framework Cocoa -framework OpenGL -framework IOKit
 
 # Path to the glfw and glew libraries
 LIB_DIR = src/dependencies/library

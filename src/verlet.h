@@ -5,8 +5,8 @@
 
 #include "mathc.h"
 
-#define CONTAINER_RADIUS 8.0f
-#define VERLET_RADIUS 0.20f
+#define CONTAINER_RADIUS 6.0f
+#define VERLET_RADIUS 0.15f
 
 typedef struct {
     mfloat_t current[VEC3_SIZE];
@@ -23,7 +23,7 @@ typedef struct NodeStruct Node;
 
 void applyForces(VerletObject* objects, int size);
 void applyCollisions(VerletObject* objects, int size);
-void applyConstraints(VerletObject* objects, int size);
+void applyConstraints(VerletObject* objects, int size, mfloat_t* containerPosition);
 void updatePositions(VerletObject* objects, int size, float dt);
 
 void clearGrid();

@@ -3,7 +3,7 @@
 
 #define STRIDE 8
 #define INSTANCE_STRIDE 3
-#define MAX_INSTANCES 10000
+#define MAX_INSTANCES 20000
 
 #include "mathc.h"
 
@@ -12,7 +12,8 @@ typedef struct {
     float* vertices;
     unsigned int VAO;
     unsigned int VBO;
-    unsigned int instanceVBO;
+    unsigned int positionVBO;
+    unsigned int velocityVBO;
 } Mesh;
 
 typedef struct {

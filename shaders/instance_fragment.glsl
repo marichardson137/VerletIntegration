@@ -2,7 +2,7 @@
 
 in vec3 fragmentPos;
 in vec3 fragmentVertexNormal;
-in vec2 fragmentTexCoord;
+in float fragmentVelocity;
 
 out vec4 color;
 
@@ -12,7 +12,10 @@ void main()
 {
     vec3 lightColor = vec3(1.0, 1.0, 1.0);
     vec3 lightPos = vec3(10.0, 10.0, 10.0);
-    vec3 objectColor = vec3(0.6, 0.3, 0.7);
+
+    vec3 objectColor = vec3(1.0, 0.713, 0.757);
+
+    objectColor = objectColor * (fragmentVelocity + 0.1);
 
     // ambient
     float ambientStrength = 0.3;
@@ -28,5 +31,4 @@ void main()
     vec3 result = (ambient + diffuse) * objectColor;
 
     color = vec4(result, 1.0);
-    // color = texture(imageTexture, fragmentTexCoord);
 }

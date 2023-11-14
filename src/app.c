@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 #include "dependencies/include/GL/glew.h"
 #include "dependencies/include/GLFW/glfw3.h"
@@ -15,9 +16,9 @@
 
 // Preprocessor constants
 #define ANIMATION_TIME 90.0f // Frames
-#define ADDITION_SPEED 10
+#define ADDITION_SPEED 20
 #define TARGET_FPS 60
-#define NUM_SUBSTEPS 6
+#define NUM_SUBSTEPS 8
 
 // Function prototypes
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -33,7 +34,7 @@ const unsigned int SCR_HEIGHT = 720;
 // Global variables (replacing soon with State struct)
 bool cursorEntered = false;
 Camera* camera;
-float cameraRadius = 20.0f;
+float cameraRadius = 24.0f;
 int totalFrames = 0;
 
 int main()
@@ -73,7 +74,7 @@ int main()
     glewInit();
 
     /* OpenGL Settings */
-    glClearColor(0.2, 0.2, 0.2, 1.0);
+    glClearColor(0.1, 0.1, 0.1, 1.0);
     glClearStencil(0);
 
     glEnable(GL_DEPTH_TEST);
@@ -94,10 +95,12 @@ int main()
     unsigned int baseShader = createShader("shaders/base_vertex.glsl", "shaders/base_fragment.glsl");
 
     Mesh* mesh = createMesh("models/sphere.obj", true);
+    Mesh* cubeMesh = createMesh("models/cube.obj", false);
+
     // Model* model = createModel(mesh);
 
     // Container
-    mfloat_t position[VEC3_SIZE] = { 0, 0, 0 };
+    mfloat_t containerPosition[VEC3_SIZE] = { 0, 0, 0 };
     mfloat_t rotation[VEC3_SIZE] = { 0, 0, 0 };
     mfloat_t scale = CONTAINER_RADIUS;
 
@@ -114,6 +117,8 @@ int main()
     float lastFrameTime = (float)glfwGetTime();
 
     char title[100] = "";
+
+    srand(time(NULL));
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window)) {
@@ -160,28 +165,38 @@ int main()
             applyForces(verlets, numActive);
             // applyCollisions(verlets, numActive);
             applyGridCollisions(verlets, numActive);
-            applyConstraints(verlets, numActive);
+            applyConstraints(verlets, numActive, containerPosition);
             updatePositions(verlets, numActive, sub_dt);
         }
 
         float verletPositions[numActive * VEC3_SIZE];
-        int pointer = 0;
+        float verletVelocities[numActive];
 
+        int posPointer = 0;
+        int velPointer = 0;
         for (int i = 0; i < numActive; i++) {
             VerletObject obj = verlets[i];
-            verletPositions[pointer++] = obj.current[0];
-            verletPositions[pointer++] = obj.current[1];
-            verletPositions[pointer++] = obj.current[2];
+            verletPositions[posPointer++] = obj.current[0];
+            verletPositions[posPointer++] = obj.current[1];
+            verletPositions[posPointer++] = obj.current[2];
+            float vel = vec3_distance(obj.current, obj.previous) * 10;
+            verletVelocities[velPointer++] = vel;
             // drawMesh(mesh, phongShader, GL_TRIANGLES, obj.current, rotation, obj.radius);
         }
 
-        glBindBuffer(GL_ARRAY_BUFFER, mesh->instanceVBO);
+        glBindBuffer(GL_ARRAY_BUFFER, mesh->positionVBO);
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * INSTANCE_STRIDE * numActive, verletPositions);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        glBindBuffer(GL_ARRAY_BUFFER, mesh->velocityVBO);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * numActive, verletVelocities);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        /* Draw instanced verlet objects */
         drawInstanced(mesh, instanceShader, GL_TRIANGLES, numActive, verlets[0].radius);
 
         /* Container */
-        drawMesh(mesh, baseShader, GL_POINTS, position, rotation, scale);
+        drawMesh(cubeMesh, baseShader, GL_TRIANGLES, containerPosition, rotation, scale * 2 + VERLET_RADIUS * 3);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
@@ -221,13 +236,13 @@ void updateCamera(GLFWwindow* window, Mouse* mouse, Camera* camera)
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
         vec3_add(camera->position, camera->position, vec3_multiply_f(temp, camera->up, speed));
-        camera->pitch -= 0.2f;
+        camera->pitch -= 0.22f;
         cameraRadius -= 0.01f;
     }
 
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
         vec3_subtract(camera->position, camera->position, vec3_multiply_f(temp, camera->up, speed));
-        camera->pitch += 0.2f;
+        camera->pitch += 0.22f;
         cameraRadius += 0.01f;
     }
 
@@ -275,16 +290,31 @@ void cursor_enter_callback(GLFWwindow* window, int entered)
 
 void instantiateVerlets(VerletObject* objects, int size)
 {
-    float distance = 6.0f;
+    int distance = 5.0f;
     for (int i = 0; i < size; i++) {
         VerletObject* obj = &(objects[i]);
+
+        // ====== LOOP ======
         float x = MSIN(i) * distance;
         float z = MCOS(i) * distance;
-        float xp = MSIN(i) * distance * 1.001;
-        float zp = MCOS(i) * distance * 1.001;
-        vec3(obj->current, x, 0.5, z);
-        vec3(obj->previous, xp, 0.5, zp);
+        float xp = MSIN(i) * distance * 0.999;
+        float zp = MCOS(i) * distance * 0.999;
+        float y = rand() % (4 - 1 + 1) + 1;
+        vec3(obj->current, x, y, z);
+        vec3(obj->previous, xp, y, zp);
         vec3(obj->acceleration, 0, 0, 0);
         obj->radius = VERLET_RADIUS;
+
+        // ====== STREAM ======
+        // float x = (0 + i) % distance - distance / 2;
+        // float y = -2.0f;
+        // float z = -4.0f;
+        // float xp = x * 1.005;
+        // float yp = y * 1.002;
+        // float zp = z * 1.005;
+        // vec3(obj->current, x, y, z);
+        // vec3(obj->previous, xp, yp, zp);
+        // vec3(obj->acceleration, 0, 0, 0);
+        // obj->radius = VERLET_RADIUS;
     }
 }
