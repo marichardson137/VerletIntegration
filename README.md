@@ -1,5 +1,5 @@
 # Verlet Integration (C)
-![ezgif com-video-to-gif](https://github.com/marichardson137/VerletIntegration/assets/77594556/628fa123-fc7b-4b54-b402-64a5d2d4570a)
+![ezgif com-video-to-gif (1)](https://github.com/marichardson137/VerletIntegration/assets/77594556/967af388-d558-48f2-bd8d-4e9e92fe2bd1)
 
 ### Synopsis
 This is an implementation of [Verlet Integration](https://www.algorithm-archive.org/contents/verlet_integration/verlet_integration.html), a numerical method commonly used for approximating trajectories. It's made with the C programming language and [OpenGL](https://www.khronos.org/about/), a popular API for GPU rendering. See [here](https://github.com/marichardson137/PyOpenGL) for the Python version (outdated).
@@ -25,7 +25,7 @@ This is an implementation of [Verlet Integration](https://www.algorithm-archive.
 3. [GLEW](https://glew.sourceforge.net/) for "wrangling" OpenGL functions and [GLFW](https://www.glfw.org/) for window management.
 
 ### Applying/releasing an attractive force w/ the Keyboard
-![ezgif com-video-to-gif (1)](https://github.com/marichardson137/VerletIntegration/assets/77594556/967af388-d558-48f2-bd8d-4e9e92fe2bd1)
+![ezgif com-video-to-gif](https://github.com/marichardson137/VerletIntegration/assets/77594556/628fa123-fc7b-4b54-b402-64a5d2d4570a)
 
 ### Linking particles into a "Net"
 ![ezgif com-video-to-gif (2)](https://github.com/marichardson137/VerletIntegration/assets/77594556/9b7cde39-567f-459b-9474-305534c78618)
