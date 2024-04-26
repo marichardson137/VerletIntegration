@@ -16,7 +16,7 @@
 
 // Preprocessor constants
 #define ANIMATION_TIME 90.0f // Frames
-#define ADDITION_SPEED 20
+#define ADDITION_SPEED 10
 #define TARGET_FPS 60
 #define NUM_SUBSTEPS 8
 
@@ -87,7 +87,7 @@ int main()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    glPointSize(2.0);
+    glPointSize(3.0);
 
     /* Models & Shaders */
     unsigned int phongShader = createShader("shaders/phong_vertex.glsl", "shaders/phong_fragment.glsl");
@@ -102,7 +102,6 @@ int main()
     // Container
     mfloat_t containerPosition[VEC3_SIZE] = { 0, 0, 0 };
     mfloat_t rotation[VEC3_SIZE] = { 0, 0, 0 };
-    mfloat_t scale = CONTAINER_RADIUS;
 
     VerletObject* verlets = malloc(sizeof(VerletObject) * MAX_INSTANCES);
     instantiateVerlets(verlets, MAX_INSTANCES);
@@ -160,6 +159,19 @@ int main()
             glfwSetWindowTitle(window, title);
         }
 
+        if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+            containerPosition[0] -= 0.05f;
+        }
+        if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+            containerPosition[0] += 0.05f;
+        }
+        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+            containerPosition[1] -= 0.05f;
+        }
+        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+            containerPosition[1] += 0.05f;
+        }
+
         float sub_dt = dt / NUM_SUBSTEPS;
         for (int i = 0; i < NUM_SUBSTEPS; i++) {
             applyForces(verlets, numActive);
@@ -181,7 +193,6 @@ int main()
             verletPositions[posPointer++] = obj.current[2];
             float vel = vec3_distance(obj.current, obj.previous) * 10;
             verletVelocities[velPointer++] = vel;
-            // drawMesh(mesh, phongShader, GL_TRIANGLES, obj.current, rotation, obj.radius);
         }
 
         glBindBuffer(GL_ARRAY_BUFFER, mesh->positionVBO);
@@ -196,7 +207,9 @@ int main()
         drawInstanced(mesh, instanceShader, GL_TRIANGLES, numActive, verlets[0].radius);
 
         /* Container */
-        drawMesh(cubeMesh, baseShader, GL_TRIANGLES, containerPosition, rotation, scale * 2 + VERLET_RADIUS * 3);
+        drawMesh(cubeMesh, baseShader, GL_TRIANGLES, containerPosition, rotation, CONTAINER_RADIUS * 2 + VERLET_RADIUS * 3);
+        // drawMesh(mesh, baseShader, GL_TRIANGLES, containerPosition, rotation, CONTAINER_RADIUS * 1.02);
+        // drawMesh(mesh, baseShader, GL_POINTS, containerPosition, rotation, CONTAINER_RADIUS * 1.02);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
@@ -290,7 +303,7 @@ void cursor_enter_callback(GLFWwindow* window, int entered)
 
 void instantiateVerlets(VerletObject* objects, int size)
 {
-    int distance = 5.0f;
+    int distance = 7.0f;
     for (int i = 0; i < size; i++) {
         VerletObject* obj = &(objects[i]);
 
@@ -299,7 +312,7 @@ void instantiateVerlets(VerletObject* objects, int size)
         float z = MCOS(i) * distance;
         float xp = MSIN(i) * distance * 0.999;
         float zp = MCOS(i) * distance * 0.999;
-        float y = rand() % (4 - 1 + 1) + 1;
+        float y = rand() % (2 - 1 + 1) + 1;
         vec3(obj->current, x, y, z);
         vec3(obj->previous, xp, y, zp);
         vec3(obj->acceleration, 0, 0, 0);

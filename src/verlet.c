@@ -41,7 +41,7 @@ void applyCollisions(VerletObject* objects, int size)
     }
 }
 
-#define DIMENSION 45 // CONTAINER_RADIUS / VERLET_RADIUS + 5
+#define DIMENSION 58 // CONTAINER_RADIUS / VERLET_RADIUS + 5
 #define MAX_PER_CELL 4
 VerletObject* grid[DIMENSION][DIMENSION][DIMENSION][MAX_PER_CELL];
 
@@ -154,17 +154,17 @@ void applyConstraints(VerletObject* objects, int size, mfloat_t* containerPositi
 
     // ========= Sphere =========
     // mfloat_t cRadius = CONTAINER_RADIUS;
-    // mfloat_t cPosition[VEC3_SIZE] = { 0, 0, 0 };
+    // // mfloat_t cPosition[VEC3_SIZE] = { 0, 0, 0 };
     // for (int i = 0; i < size; i++) {
     //     VerletObject* obj = &(objects[i]);
     //     mfloat_t disp[VEC3_SIZE];
-    //     vec3_subtract(disp, obj->current, cPosition);
+    //     vec3_subtract(disp, obj->current, containerPosition);
     //     mfloat_t dist = vec3_length(disp);
     //     if (dist > cRadius - obj->radius) {
     //         mfloat_t norm[VEC3_SIZE];
     //         vec3_divide_f(norm, disp, dist);
     //         vec3_multiply_f(norm, norm, cRadius - obj->radius);
-    //         vec3_add(obj->current, cPosition, norm);
+    //         vec3_add(obj->current, containerPosition, norm);
     //     }
     // }
 

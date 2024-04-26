@@ -5069,12 +5069,12 @@ struct mat3 smat3_multiply_f(struct mat3 m0, mfloat_t f)
     return result;
 }
 
-struct mat3 smat3_inverse(struct mat3 m0)
-{
-    struct mat3 result;
-    mat3_inverse((mfloat_t*)&result, (mfloat_t*)&m0);
-    return result;
-}
+// struct mat3 smat3_inverse(struct mat3 m0)
+// {
+//     struct mat3 result;
+//     mat3_inverse((mfloat_t*)&result, (mfloat_t*)&m0);
+//     return result;
+// }
 
 struct mat3 smat3_scaling(struct vec3 v0)
 {

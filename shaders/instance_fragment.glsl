@@ -16,6 +16,7 @@ void main()
     vec3 objectColor = vec3(1.0, 0.713, 0.757);
 
     objectColor = objectColor * (fragmentVelocity + 0.1);
+    // objectColor = vec3(1.0, 0.713, 0.757);
 
     // ambient
     float ambientStrength = 0.3;
