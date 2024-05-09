@@ -108,7 +108,7 @@ DynamicArray* loadOBJ(const char* filename)
 
     char* line = NULL;
     size_t len = 0;
-    ssize_t read;
+    size_t read;
 
     while ((read = getline(&line, &len, fp)) != -1) {
         char* words[4];
